@@ -28,16 +28,18 @@
 #include "py/compile.h"
 #include "py/runtime.h"
 
-static const char *demo_single_input =
-    "print('hello world!', list(x + 1 for x in range(10)), end='eol\\n')";
+#define riscv_perf_cntr_begin() asm volatile("csrwi 0x801, 1")
+#define riscv_perf_cntr_end() asm volatile("csrwi 0x801, 0")
 
-static const char *demo_file_input =
-    "import micropython\n"
-    "\n"
-    "print(dir(micropython))\n"
-    "\n"
-    "for i in range(10):\n"
-    "    print('iter {:08}'.format(i))";
+static const char *demo_single_input_prime =
+    "from math import sqrt\n"
+#ifdef LONG
+    "a = 12207031\n"
+#endif
+#ifndef LONG
+    "a = 19531\n"
+#endif
+    "print(not (a <= 3 or any(a % x == 0 for x in range(2, sqrt(a)))))";
 
 static void do_str(const char *src, mp_parse_input_kind_t input_kind) {
     nlr_buf_t nlr;
@@ -58,8 +60,13 @@ static void do_str(const char *src, mp_parse_input_kind_t input_kind) {
 // Main entry point: initialise the runtime and execute demo strings.
 void bare_main(void) {
     mp_init();
-    do_str(demo_single_input, MP_PARSE_SINGLE_INPUT);
-    do_str(demo_file_input, MP_PARSE_FILE_INPUT);
+#ifdef ALGO_ONLY
+    riscv_perf_cntr_begin();
+#endif
+    do_str(demo_single_input_prime, MP_PARSE_FILE_INPUT);
+#ifdef ALGO_ONLY
+    riscv_perf_cntr_end();
+#endif
     mp_deinit();
 }
 

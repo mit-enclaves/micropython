@@ -16,8 +16,18 @@ CFLAGS += -Wall -Werror -std=gnu11 -nostdlib
 CFLAGS += -march=rv64g -mcmodel=medany -mabi=lp64 -fno-common -fno-tree-loop-distribute-patterns -nostartfiles -nostdlib -static 
 CSUPEROPT = -Os # save some code space for performance-critical code
 
+ifeq ($(EXPERIMENT_N), 12)
+CFLAGS += -D ALGO_ONLY=1
+else ifeq ($(EXPERIMENT_N), 13)
+CFLAGS += -D ALL_MICROP=1
+endif
+
+ifeq ($(LONG_N), 1)
+CFLAGS += -D LONG=1
+endif
+
 # Select debugging or optimisation build.
-DEBUG=1
+DEBUG=0
 ifeq ($(DEBUG), 1)
 CFLAGS += -O0 -ggdb3
 else

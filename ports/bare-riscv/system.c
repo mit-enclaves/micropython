@@ -29,6 +29,9 @@
 #include "py/mpconfig.h"
 #include "api_enclave.h"
 
+#define riscv_perf_cntr_begin() asm volatile("csrwi 0x801, 1")
+#define riscv_perf_cntr_end() asm volatile("csrwi 0x801, 0")
+
 extern uint32_t _estack, _sidata, _sdata, _edata, _sbss, _ebss;
 
 void Reset_Handler(void) __attribute__((naked));
@@ -40,6 +43,9 @@ static char* console_buf_idx;
 
 // The CPU runs this function when entering the enclave.
 void enclave_entry(uintptr_t console_buf) {
+#ifdef ALL_MICROP
+    riscv_perf_cntr_begin();
+#endif
     // Zero out .bss section.
     memset(&_sbss, 0, (char *)&_ebss - (char *)&_sbss);
     
@@ -52,6 +58,9 @@ void enclave_entry(uintptr_t console_buf) {
     // Now that there is a basic system up and running, call the main application code.
     bare_main();
 
+#ifdef ALL_MICROP
+    riscv_perf_cntr_end();
+#endif
     sm_exit_enclave(); 
     // This function must not return.
     for (;;) {
