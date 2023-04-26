@@ -26,8 +26,9 @@
 
 #include <stdint.h>
 #include <string.h>
+#include <api_enclave.h>
 #include "py/mpconfig.h"
-#include "api_enclave.h"
+#include "cryptography.h"
 
 #define riscv_perf_cntr_begin() asm volatile("csrwi 0x801, 1")
 #define riscv_perf_cntr_end() asm volatile("csrwi 0x801, 0")
@@ -38,8 +39,18 @@ void Reset_Handler(void) __attribute__((naked));
 void bare_main(void);
 
 static void enclave_init(void);
+void mp_hal_stdout_tx_strn(const char *str, mp_uint_t len);
 
 static char* console_buf_idx;
+
+hash_t measurement;
+public_key_t pk;
+secret_key_t sk;
+signature_t attestation;
+
+hash_context_t output_h_ctxt;
+
+const char hex_map[] = "0123456789ABCDEF";
 
 // The CPU runs this function when entering the enclave.
 void enclave_entry(uintptr_t console_buf) {
@@ -58,9 +69,42 @@ void enclave_entry(uintptr_t console_buf) {
     // Now that there is a basic system up and running, call the main application code.
     bare_main();
 
+#ifdef MICROP_HASH
+    riscv_perf_cntr_begin();
+#endif
+
+    // Sign the output hash and print the signature
+    hash_t output_h;
+    hash_finalize(&output_h_ctxt, &output_h);
+
+#ifdef MICROP_HASH
+    riscv_perf_cntr_end();
+#endif
+#ifdef MICROP_SIGN
+    riscv_perf_cntr_begin();
+#endif
+
+    signature_t signature;
+    sign(&output_h, sizeof(hash_t), &pk, &sk, &signature);
+
+    int len = sizeof(signature_t);
+    char signature_str[2 * len + 1];
+    for(int i=0; i < len; i++) {
+      signature_str[i * 2] = hex_map[signature.bytes[i] >> 4];
+      signature_str[i * 2 + 1] = hex_map[signature.bytes[i] & 0x0F];
+    }
+    signature_str[len * 2] = '\n';
+
+#ifdef MICROP_SIGN
+    riscv_perf_cntr_end();
+#endif
+
+    mp_hal_stdout_tx_strn(signature_str, len * 2 + 1);
+
 #ifdef ALL_MICROP
     riscv_perf_cntr_end();
 #endif
+
     sm_exit_enclave(); 
     // This function must not return.
     for (;;) {
@@ -69,9 +113,28 @@ void enclave_entry(uintptr_t console_buf) {
 
 // Set up the ENCLAVE.
 static void enclave_init(void) {
+  api_result_t res;
+  do{
+    res = sm_enclave_get_keys(&measurement, &pk, &sk, &attestation);
+  } while(res != MONITOR_OK);
+
+#ifdef MICROP_HASH
+    riscv_perf_cntr_begin();
+#endif
+  hash_init(&output_h_ctxt);
+#ifdef MICROP_HASH
+    riscv_perf_cntr_end();
+#endif
 }
 
 static inline uintptr_t console_putchar(uint8_t c) {
+#ifdef MICROP_HASH
+    riscv_perf_cntr_begin();
+#endif
+  hash_extend(&output_h_ctxt, &c, sizeof(uint8_t));
+#ifdef MICROP_HASH
+    riscv_perf_cntr_end();
+#endif
   *console_buf_idx++ = c;
   return 0x0;
 }

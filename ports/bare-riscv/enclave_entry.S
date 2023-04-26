@@ -5,7 +5,7 @@
 mv a0, sp
 
 # set stack pointer
-la sp, _estack 
+la sp, enclave_stack_ptr 
 
 la ra, enclave_entry
 jr ra

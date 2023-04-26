@@ -3,10 +3,8 @@ ENTRY( entry_assembly )
 
 MEMORY
 {
-  RAM(xrw) : ORIGIN = 0x0, LENGTH = 0x40000
+  RAM(xrw) : ORIGIN = 0x20000000, LENGTH = 0x200000
 }
-
-_estack = ORIGIN(RAM) + LENGTH(RAM);
 
 SECTIONS
 {
@@ -49,5 +47,12 @@ SECTIONS
   {
     . = ALIGN(8);
     _heap_start = .;
+  } >RAM
+  
+  .stack :
+  {
+    . = ALIGN(0x1000);
+    *(.stack)
+      *(.stack*)
   } >RAM
 }

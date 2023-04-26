@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <api_crypto_types.h>
 
 // SM API Types
 // --------------------
@@ -78,9 +79,8 @@ typedef enum {
   PUBLIC_FIELD_PK_D = 1,
   PUBLIC_FIELD_PK_SM = 2,
   PUBLIC_FIELD_H_SM = 3,
-  PUBLIC_FIELD_SIG_M = 4,
-  PUBLIC_FIELD_SIG_D = 5,
-  PUBLIC_FIELD_H_AE = 6,
+  PUBLIC_FIELD_SIG_D = 4,
+  PUBLIC_FIELD_SIG_SM = 5,
 } public_field_t;
 
 typedef enum {
@@ -108,8 +108,9 @@ typedef enum {
 #define SM_ENCLAVE_LOAD_PAGE_TABLE          (1006)
 #define SM_ENCLAVE_LOAD_PAGE                (1007)
 #define SM_ENCLAVE_METADATA_PAGES           (1008)
+#define SM_ENCLAVE_GET_ATTEST               (1009)
 
-#define SM_GET_ATTESTATION_KEY              (1010)
+#define SM_ENCLAVE_GET_KEYS                 (1010)
 #define SM_GET_PUBLIC_FIELD                 (1011)
 
 #define SM_MAIL_ACCEPT                      (1020)
