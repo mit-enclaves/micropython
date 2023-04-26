@@ -32,14 +32,13 @@
 #define riscv_perf_cntr_end() asm volatile("csrwi 0x801, 0")
 
 static const char *demo_single_input_prime =
-    "from math import sqrt\n"
 #ifdef LONG
     "a = 12207031\n"
 #endif
 #ifndef LONG
     "a = 19531\n"
 #endif
-    "print(not (a <= 3 or any(a % x == 0 for x in range(2, sqrt(a)))))";
+    "print(not (a <= 3 or any(a % x == 0 for x in range(2, a))))";
 
 static void do_str(const char *src, mp_parse_input_kind_t input_kind) {
     nlr_buf_t nlr;

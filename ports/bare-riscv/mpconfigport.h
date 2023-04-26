@@ -34,10 +34,6 @@
 // Compiler configuration
 #define MICROPY_ENABLE_COMPILER                 (1)
 
-// Module Config
-#define MICROPY_FLOAT_IMPL          (MICROPY_FLOAT_IMPL_FLOAT)
-#define MICROPY_PY_MATH             (1)
-
 // Python internal features
 #define MICROPY_ERROR_REPORTING                 (MICROPY_ERROR_REPORTING_NONE)
 
