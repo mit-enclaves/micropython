@@ -1,3 +1,15 @@
+Citadel's MicroPython Port
+==========================
+
+This is a minimal port of [MicroPython](https://github.com/micropython/micropython) inside of a Citadel enclave.
+We start with the bare-metal ARM implementation.
+We modify the configuration files and the linker script so our binary can run in the virtual memory layout provided by our enclave.
+We only need to implement a few functions by hand.
+For instance, we redirect the console to print to shared memory and need to write a bit of assembly for the setjmp and longjmp functions used for exception handling.
+We also add a cryptographic library so the enclave can sign the console output using its own private keys.
+A hash of the standard output is extended on each character print and signed on the enclave exit.
+We cross-compile MicroPython using the RISC-V tool-chain, making sure to deactivate compressed instructions, build without standard library, and generate position independent code.
+
 [![CI badge](https://github.com/micropython/micropython/workflows/unix%20port/badge.svg)](https://github.com/micropython/micropython/actions?query=branch%3Amaster+event%3Apush) [![codecov](https://codecov.io/gh/micropython/micropython/branch/master/graph/badge.svg?token=I92PfD05sD)](https://codecov.io/gh/micropython/micropython)
 
 The MicroPython project
